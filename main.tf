@@ -9,7 +9,7 @@ terraform {
 
 # Variables
 variable "application_name" {
-  default = "aws-terraform"
+  default = "lambda-batch-processor"
 }
 
 variable "aws_region" {
