@@ -30,7 +30,7 @@ variable "s3_bucket_prefix" {
 }
 
 variable "filename_suffix" {
-  default = ".zip"
+  default = ".csv"
 }
 
 # Provider.  AWS in this case.

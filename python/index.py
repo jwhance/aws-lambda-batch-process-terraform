@@ -1,9 +1,11 @@
 import json
 import os
+import time
 
 import boto3
 
 import s3
+import sqs
 
 
 ENVIRONMENT = os.environ.get('ENVIRONMENT', 'dev')
@@ -22,6 +24,12 @@ def lambda_handler(event, context):
     # If triggered by SQS event, process the records in the payload
     if event.get('Records') and event['Records'][0].get('eventSource') == 'aws:sqs':
         print('Event came from SQS')
+
+        for record in event.get('Records'):
+            print(record.get('body'))
+
+        print(f'Processed {len(event.get('Records'))} records from SQS')
+
         return {
             'message' : 'Hello from SQS Event Handler'
         }
@@ -42,26 +50,27 @@ def lambda_handler(event, context):
     # If triggered by S3 event, read the file and enqueue each record to the SQS Queue
     if event.get('Records') and event['Records'][0].get('eventSource') == 'aws:s3':
         print('Event came from S3')
-   
-    # Write a message to SQS Queue
-    print(f'Writing message to SQS Queue: {SQS_QUEUE_URL}')
-    s3_filename = event.get('Records')[0].get('s3').get('object').get('key')
 
-    try:
-        response = SQS_CLIENT.send_message(
-            QueueUrl=SQS_QUEUE_URL,
-            MessageBody=(
-                json.dumps({'s3_file': s3_filename})
-            )
-        )
-        print(f'SQS Message ID: {response.get('MessageId')}')
+        start_time = time.time()
 
-    except Exception as e:
-        print(e)
+        # s3.bucket.name and s3.object.key
+        bucket_name = event.get('Records')[0].get('s3').get('bucket').get('name')
+        object_key = event.get('Records')[0].get('s3').get('object').get('key')
+
+        print(f'Bucket: {bucket_name}, Key: {object_key}, Size: {s3.get_s3_file_size(bucket_name, object_key)}')
+        lines = s3.get_s3_object_iterable_lines(bucket_name, object_key)
+        for idx, line in enumerate(lines):
+            sqs_messageid = sqs.enqueue_to_sqs(idx, line.decode('ascii'))
+
+        end_time = time.time()
+
+        print(f'Queued {idx+1} records from S3 file: s3://{bucket_name}/{object_key} in {end_time-start_time} seconds.')
+
         return {
-            'message' : f'Something went wrong: {e}'
-        }        
-
+            'message' : f'Queued {idx+1} records from S3 file: s3://{bucket_name}/{object_key} in {end_time-start_time} seconds.'
+        }
+    
     return {
-        'message' : f'Queued all records in S3 file: {s3_filename}'
-    }
+        'statusCode': 400,
+        'body' : 'ERROR: UNKNOWN EVENT'
+    }    

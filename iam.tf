@@ -52,9 +52,10 @@ resource "aws_iam_policy" "iam_policy_for_lambda" {
       "s3:GetObject",
       "s3:PutObject",
       "s3:DeleteObject",
-      "s3:ListBucket"
+      "s3:ListBucket",
+      "s3:GetObjectAttributes"
     ],
-    "Resource": "arn:aws:s3:::s3-${var.environment}-${var.application_name}",
+    "Resource": "arn:aws:s3:::s3-${var.environment}-${var.application_name}/*",
     "Effect": "Allow"
    }  
  ]
