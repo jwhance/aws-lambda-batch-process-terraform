@@ -25,8 +25,8 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
   lambda_function {
     lambda_function_arn = aws_lambda_function.terraform_lambda_func.arn
     events              = ["s3:ObjectCreated:*"]
-    filter_prefix       = "inbound/"
-    filter_suffix       = ".csv"
+    filter_prefix       = "${var.s3_bucket_prefix}/"
+    filter_suffix       = var.filename_suffix
   }
 
   depends_on = [

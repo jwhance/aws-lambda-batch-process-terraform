@@ -20,6 +20,19 @@ variable "environment" {
   default = "dev"
 }
 
+variable "platform" {
+  default = "arm64"
+  # default = "x86_64"
+}
+
+variable "s3_bucket_prefix" {
+  default = "inbound"
+}
+
+variable "filename_suffix" {
+  default = ".zip"
+}
+
 # Provider.  AWS in this case.
 provider "aws" {
   region = var.aws_region

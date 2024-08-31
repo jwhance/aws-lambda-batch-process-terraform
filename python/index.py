@@ -3,10 +3,13 @@ import os
 
 import boto3
 
+import s3
+
 
 ENVIRONMENT = os.environ.get('ENVIRONMENT', 'dev')
 SQS_QUEUE_URL = os.environ.get('SQS_QUEUE_URL')
 S3_BUCKET_NAME = os.environ.get('S3_BUCKET_NAME')
+S3_PREFIX = os.environ.get('S3_PREFIX')
 
 SQS_CLIENT = boto3.client('sqs')
 
@@ -23,9 +26,22 @@ def lambda_handler(event, context):
             'message' : 'Hello from SQS Event Handler'
         }
     
+    # If triggered by API Gateway event, process the payload
+    if event.get('requestContext'):
+        print('Event came from API Gateway')
+
+        # Generate an S3 presigned URL for the S3 file
+        presigned_url = s3.get_s3_presigned_url(S3_BUCKET_NAME, S3_PREFIX)
+        presigned_post = s3.get_s3_presigned_post(S3_BUCKET_NAME, S3_PREFIX)
+
+        return {
+            'statusCode': 200,
+            'body' : json.dumps({'presigned_url' : presigned_url, 'presigned_post': presigned_post})
+        }
+    
     # If triggered by S3 event, read the file and enqueue each record to the SQS Queue
     if event.get('Records') and event['Records'][0].get('eventSource') == 'aws:s3':
-        print('Event came from S3') 
+        print('Event came from S3')
    
     # Write a message to SQS Queue
     print(f'Writing message to SQS Queue: {SQS_QUEUE_URL}')
