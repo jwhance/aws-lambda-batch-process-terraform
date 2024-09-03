@@ -57,7 +57,19 @@ resource "aws_iam_policy" "iam_policy_for_lambda" {
     ],
     "Resource": "arn:aws:s3:::s3-${var.environment}-${var.application_name}/*",
     "Effect": "Allow"
-   }  
+   },
+   {
+    "Action": [
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:DeleteItem",
+      "dynamodb:Query",
+      "dynamodb:Scan",
+      "dynamodb:UpdateItem"
+    ],
+    "Resource": "arn:aws:dynamodb:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:table/DDB-${var.environment}-${var.application_name}*",
+    "Effect": "Allow"
+   }
  ]
 }
 EOF

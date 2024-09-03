@@ -36,6 +36,12 @@ variable "filename_suffix" {
 # Provider.  AWS in this case.
 provider "aws" {
   region = var.aws_region
+  default_tags {
+    tags = {
+      Environment = "${var.environment}"
+      Application = "${var.application_name}"
+    }
+  }
 }
 
 data "aws_region" "current" {}

@@ -60,17 +60,4 @@ def get_s3_file_size(bucket: str, key: str) -> int:
 @retry.retry(tries=3, delay=2)
 def get_s3_object_iterable_lines(bucket: str, key: str) -> Generator[str, None, None]:
     s3_object = S3_SESSION.resource('s3').Object(bucket_name=bucket, key=key)
-    return s3_object.get()['Body'].iter_lines()
-
-
-
-if __name__ == '__main__':
-    # Try to stream the file from S3 Bucket
-    file_size = get_s3_file_size('s3-dev-lambda-batch-processor', 'inbound/100_Sales_Records.csv')
-    print(f'File size: {file_size}')
-
-    iter_lines = get_s3_object_iterable_lines('s3-dev-lambda-batch-processor', 'inbound/100_Sales_Records.csv')
-    for idx, line in enumerate(iter_lines):
-        print(idx, line.decode('ascii')) 
-
-        
+    return s3_object.get()['Body'].iter_lines()        

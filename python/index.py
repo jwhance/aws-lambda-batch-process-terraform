@@ -18,12 +18,12 @@ SQS_CLIENT = boto3.client('sqs')
 def lambda_handler(event, context):
 
     if ENVIRONMENT == 'dev':
-        print('Running in development mode')
+        # print('Running in development mode')
         print(f'EVENT: {event}')
 
     # If triggered by SQS event, process the records in the payload
     if event.get('Records') and event['Records'][0].get('eventSource') == 'aws:sqs':
-        print('Event came from SQS')
+        # print('Event came from SQS')
 
         for record in event.get('Records'):
             print(record.get('body'))
@@ -58,13 +58,25 @@ def lambda_handler(event, context):
         object_key = event.get('Records')[0].get('s3').get('object').get('key')
 
         print(f'Bucket: {bucket_name}, Key: {object_key}, Size: {s3.get_s3_file_size(bucket_name, object_key)}')
+
+        queue_batch = []
+        batch_count = 0
         lines = s3.get_s3_object_iterable_lines(bucket_name, object_key)
         for idx, line in enumerate(lines):
-            sqs_messageid = sqs.enqueue_to_sqs(idx, line.decode('ascii'))
+
+            queue_batch.append({'Id': str(idx), 'MessageBody': line.decode('ascii')})
+
+            if len(queue_batch) >= 10:
+                response = sqs.enqueue_to_sqs_batch(queue_batch, batch_count)
+                queue_batch = []
+                batch_count += 10
+
+        if len(queue_batch) > 0:
+            response = sqs.enqueue_to_sqs_batch(queue_batch, batch_count)
 
         end_time = time.time()
 
-        print(f'Queued {idx+1} records from S3 file: s3://{bucket_name}/{object_key} in {end_time-start_time} seconds.')
+        print(f'=====> Queued {idx+1} records from S3 file: s3://{bucket_name}/{object_key} in {end_time-start_time} seconds.')
 
         return {
             'message' : f'Queued {idx+1} records from S3 file: s3://{bucket_name}/{object_key} in {end_time-start_time} seconds.'
