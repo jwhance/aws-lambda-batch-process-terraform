@@ -31,7 +31,7 @@ def lambda_handler(event, context):
         for record in event.get('Records'):
             # print(record.get('body'))
             body_dict = json.loads(record.get('body'))
-            result = dynamodb.write_item_to_table(dynamodb.TABLE, body_dict.get('Message'), body_dict.get('LineNumber'))
+            result = dynamodb.write_item_to_table(dynamodb.TABLE, body_dict.get('Message'), body_dict.get('ObjectKey') + "_" + str(body_dict.get('LineNumber')))
             # print(result)
 
 
@@ -75,6 +75,7 @@ def lambda_handler(event, context):
                 {
                     'Id': str(idx), 
                     'MessageBody': {
+                        'ObjectKey': object_key,
                         'LineNumber': idx,
                         'Message': line.decode('ascii')
                     }
