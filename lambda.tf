@@ -35,6 +35,7 @@ resource "aws_lambda_function" "terraform_lambda_func" {
       SQS_QUEUE_URL  = "https://sqs.${var.environment}.amazonaws.com/${data.aws_caller_identity.current.account_id}/sqs-${var.environment}-${var.application_name}"
       S3_BUCKET_NAME = "s3-${var.environment}-${var.application_name}"
       S3_PREFIX      = "${var.s3_bucket_prefix}",
+      DONE_PREFIX    = "${var.s3_processed_prefix}",
       DYNAMO_TABLE   = "ddb-${var.environment}-${var.application_name}"
     }
   }

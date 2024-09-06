@@ -29,6 +29,10 @@ variable "s3_bucket_prefix" {
   default = "inbound"
 }
 
+variable "s3_processed_prefix" {
+  default = "processed"
+}
+
 variable "filename_suffix" {
   default = ".csv"
 }

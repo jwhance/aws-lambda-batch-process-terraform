@@ -14,6 +14,7 @@ ENVIRONMENT = os.environ.get('ENVIRONMENT', 'dev')
 SQS_QUEUE_URL = os.environ.get('SQS_QUEUE_URL')
 S3_BUCKET_NAME = os.environ.get('S3_BUCKET_NAME')
 S3_PREFIX = os.environ.get('S3_PREFIX')
+DONE_PREFIX = os.environ.get('DONE_PREFIX')
 DYNAMO_TABLE = os.environ.get('DYNAMO_TABLE')
 
 SQS_CLIENT = boto3.client('sqs')
@@ -89,6 +90,9 @@ def lambda_handler(event, context):
 
         if len(queue_batch) > 0:
             response = sqs.enqueue_to_sqs_batch(queue_batch, batch_count)
+
+        # Move the object to the "processed" folder
+        s3.move_s3_object(bucket_name, object_key, bucket_name, object_key.replace(S3_PREFIX + '/', DONE_PREFIX + '/'))
 
         end_time = time.time()
 
