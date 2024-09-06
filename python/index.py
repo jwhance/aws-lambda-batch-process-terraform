@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import json
 import os
 import time
@@ -29,11 +30,10 @@ def lambda_handler(event, context):
 
         # Process each record and write to DynamoDb table
         for record in event.get('Records'):
-            # print(record.get('body'))
+            # Set items to expire in 15 minutes
+            ttl = int((datetime.now() + timedelta(minutes=15)).timestamp())
             body_dict = json.loads(record.get('body'))
-            result = dynamodb.write_item_to_table(dynamodb.TABLE, body_dict.get('Message'), body_dict.get('ObjectKey') + "_" + str(body_dict.get('LineNumber')))
-            # print(result)
-
+            result = dynamodb.write_item_to_table(dynamodb.TABLE, body_dict.get('Message'), body_dict.get('ObjectKey') + "_" + str(body_dict.get('LineNumber')), ttl)
 
         print(f'Processed {len(event.get('Records'))} records from SQS')
 

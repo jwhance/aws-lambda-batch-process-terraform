@@ -10,10 +10,11 @@ TABLE = DYNAMODB.Table(os.environ.get('DYNAMO_TABLE', 'ddb-dev-lambda-batch-proc
 AWS_REGION = os.environ.get('AWS_REGION', 'us-east-2')
 
 @retry.retry(exceptions=Exception, tries=3, delay=2)
-def write_item_to_table(table_resource, item_body: str, item_id: int) -> dict:
+def write_item_to_table(table_resource, item_body: str, item_id: int, ttl: int) -> dict:
     response = table_resource.put_item(
         Item={
             'Id': str(item_id),
+            'Ttl': ttl,
             'Data': item_body
         }
     )
