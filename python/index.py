@@ -4,6 +4,7 @@ import time
 
 import boto3
 
+import dynamodb
 import s3
 import sqs
 
@@ -12,6 +13,7 @@ ENVIRONMENT = os.environ.get('ENVIRONMENT', 'dev')
 SQS_QUEUE_URL = os.environ.get('SQS_QUEUE_URL')
 S3_BUCKET_NAME = os.environ.get('S3_BUCKET_NAME')
 S3_PREFIX = os.environ.get('S3_PREFIX')
+DYNAMO_TABLE = os.environ.get('DYNAMO_TABLE')
 
 SQS_CLIENT = boto3.client('sqs')
 
@@ -25,13 +27,18 @@ def lambda_handler(event, context):
     if event.get('Records') and event['Records'][0].get('eventSource') == 'aws:sqs':
         # print('Event came from SQS')
 
+        # Process each record and write to DynamoDb table
         for record in event.get('Records'):
-            print(record.get('body'))
+            # print(record.get('body'))
+            body_dict = json.loads(record.get('body'))
+            result = dynamodb.write_item_to_table(dynamodb.TABLE, body_dict.get('Message'), body_dict.get('LineNumber'))
+            # print(result)
+
 
         print(f'Processed {len(event.get('Records'))} records from SQS')
 
         return {
-            'message' : 'Hello from SQS Event Handler'
+            'message' : f'Wrote {len(event.get('Records'))} items to DynamoDb table {DYNAMO_TABLE}'
         }
     
     # If triggered by API Gateway event, process the payload
@@ -64,7 +71,15 @@ def lambda_handler(event, context):
         lines = s3.get_s3_object_iterable_lines(bucket_name, object_key)
         for idx, line in enumerate(lines):
 
-            queue_batch.append({'Id': str(idx), 'MessageBody': line.decode('ascii')})
+            queue_batch.append(
+                {
+                    'Id': str(idx), 
+                    'MessageBody': {
+                        'LineNumber': idx,
+                        'Message': line.decode('ascii')
+                    }
+                }
+            )
 
             if len(queue_batch) >= 10:
                 response = sqs.enqueue_to_sqs_batch(queue_batch, batch_count)

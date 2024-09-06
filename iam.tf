@@ -67,7 +67,7 @@ resource "aws_iam_policy" "iam_policy_for_lambda" {
       "dynamodb:Scan",
       "dynamodb:UpdateItem"
     ],
-    "Resource": "arn:aws:dynamodb:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:table/DDB-${var.environment}-${var.application_name}*",
+    "Resource": "arn:aws:dynamodb:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:table/ddb-${var.environment}-${var.application_name}*",
     "Effect": "Allow"
    }
  ]
