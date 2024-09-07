@@ -1,0 +1,1 @@
+GET https://ms7r4pc4u0.execute-api.us-east-2.amazonaws.com/dev/handler?username=joe&password=test1234$

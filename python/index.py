@@ -16,18 +16,18 @@ S3_BUCKET_NAME = os.environ.get('S3_BUCKET_NAME')
 S3_PREFIX = os.environ.get('S3_PREFIX')
 DONE_PREFIX = os.environ.get('DONE_PREFIX')
 DYNAMO_TABLE = os.environ.get('DYNAMO_TABLE')
+PRESIGNED_USER = os.environ.get('PRESIGNED_USER')
+PRESIGNED_PASS = os.environ.get('PRESIGNED_PASS')
 
 SQS_CLIENT = boto3.client('sqs')
 
 def lambda_handler(event, context):
 
     if ENVIRONMENT == 'dev':
-        # print('Running in development mode')
         print(f'EVENT: {event}')
 
     # If triggered by SQS event, process the records in the payload
     if event.get('Records') and event['Records'][0].get('eventSource') == 'aws:sqs':
-        # print('Event came from SQS')
 
         # Process each record and write to DynamoDb table
         for record in event.get('Records'):
@@ -45,6 +45,15 @@ def lambda_handler(event, context):
     # If triggered by API Gateway event, process the payload
     if event.get('requestContext'):
         print('Event came from API Gateway')
+
+        # Check for username and password
+        username = event.get('queryStringParameters').get('username')
+        password = event.get('queryStringParameters').get('password')
+        if username != PRESIGNED_USER or password != PRESIGNED_PASS:
+            return {
+                'statusCode': 401,
+                'body' : json.dumps({'message' : 'Unauthorized'})
+            }
 
         # Generate an S3 presigned URL for the S3 file
         presigned_url = s3.get_s3_presigned_url(S3_BUCKET_NAME, S3_PREFIX)

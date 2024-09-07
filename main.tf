@@ -37,6 +37,14 @@ variable "filename_suffix" {
   default = ".csv"
 }
 
+variable "presigned_username" {
+  default = "joe"
+}
+
+variable "presigned_password" {
+  default = "test1234$"
+}
+
 # Provider.  AWS in this case.
 provider "aws" {
   region = var.aws_region

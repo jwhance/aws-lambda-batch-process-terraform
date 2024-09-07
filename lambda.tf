@@ -37,6 +37,8 @@ resource "aws_lambda_function" "terraform_lambda_func" {
       S3_PREFIX      = "${var.s3_bucket_prefix}",
       DONE_PREFIX    = "${var.s3_processed_prefix}",
       DYNAMO_TABLE   = "ddb-${var.environment}-${var.application_name}"
+      PRESIGNED_USER = "${var.presigned_username}"
+      PRESIGNED_PASS = "${var.presigned_password}"
     }
   }
 }
